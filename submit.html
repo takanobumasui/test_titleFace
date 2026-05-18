@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>タイトルを付ける</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Noto+Serif+JP:wght@300;400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1814;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    font-family: 'Noto Serif JP', serif;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .instruction {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    color: #7a6e5a;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .current-label {
+    font-size: 10px;
+    color: #4a4438;
+    letter-spacing: 0.15em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .current-title {
+    font-family: 'IM Fell English', serif;
+    font-size: 18px;
+    color: #8a7a62;
+    margin-bottom: 32px;
+    min-height: 1.4em;
+    font-style: italic;
+  }
+
+  .current-title.jp {
+    font-family: 'Noto Serif JP', serif;
+    font-style: normal;
+    font-weight: 300;
+  }
+
+  .input-wrap {
+    position: relative;
+    margin-bottom: 8px;
+  }
+
+  textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #4a4030;
+    color: #e8e0d0;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 20px;
+    font-weight: 300;
+    padding: 8px 0 12px;
+    resize: none;
+    outline: none;
+    line-height: 1.5;
+    caret-color: #c8a96e;
+    transition: border-color 0.3s;
+  }
+
+  textarea:focus {
+    border-bottom-color: #c8a96e;
+  }
+
+  textarea::placeholder {
+    color: #3a342a;
+  }
+
+  .counter {
+    text-align: right;
+    font-size: 11px;
+    color: #4a4030;
+    letter-spacing: 0.05em;
+    margin-bottom: 28px;
+    transition: color 0.3s;
+  }
+
+  .counter.warn { color: #a06030; }
+  .counter.over  { color: #c04020; }
+
+  button {
+    width: 100%;
+    background: transparent;
+    border: 1px solid #4a4030;
+    color: #c8b898;
+    font-family: 'IM Fell English', serif;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  button:hover:not(:disabled) {
+    border-color: #c8a96e;
+    color: #e8d8b0;
+    background: rgba(200,169,110,0.05);
+  }
+
+  button:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #c8a96e;
+    color: #1a1814;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    padding: 10px 24px;
+    opacity: 0;
+    transition: all 0.4s;
+    pointer-events: none;
+    font-family: 'IM Fell English', serif;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <p class="instruction">この絵に、タイトルを付けてください。</p>
+
+  <div class="current-label">現在のタイトル</div>
+  <div class="current-title" id="currentTitle">無題</div>
+
+  <div class="input-wrap">
+    <textarea id="titleInput" rows="2" maxlength="40" placeholder="タイトルを入力…"></textarea>
+  </div>
+  <div class="counter" id="counter">0 / 40</div>
+
+  <button id="submitBtn" disabled>決定する</button>
+</div>
+
+<div class="toast" id="toast">投稿しました</div>
+
+<script>
+  const input = document.getElementById('titleInput');
+  const counter = document.getElementById('counter');
+  const btn = document.getElementById('submitBtn');
+  const toast = document.getElementById('toast');
+  const currentTitle = document.getElementById('currentTitle');
+  const MAX = 40;
+
+  function detectJP(text) {
+    return /[\u3040-\u30FF\u4E00-\u9FFF]/.test(text);
+  }
+
+  function loadCurrent() {
+    const saved = localStorage.getItem('painting_title');
+    if (saved) {
+      const data = JSON.parse(saved);
+      currentTitle.textContent = data.title || '無題';
+      currentTitle.className = 'current-title' + (detectJP(data.title) ? ' jp' : '');
+    }
+  }
+
+  loadCurrent();
+  setInterval(loadCurrent, 1500);
+
+  input.addEventListener('input', () => {
+    const len = input.value.length;
+    counter.textContent = len + ' / ' + MAX;
+    counter.className = 'counter' + (len > 35 ? ' warn' : '') + (len >= MAX ? ' over' : '');
+    btn.disabled = len === 0;
+  });
+
+  btn.addEventListener('click', () => {
+    const text = input.value.trim();
+    if (!text) return;
+
+    const now = new Date();
+    const time = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+
+    localStorage.setItem('painting_title', JSON.stringify({ title: text, time }));
+
+    input.value = '';
+    counter.textContent = '0 / ' + MAX;
+    btn.disabled = true;
+
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+
+    loadCurrent();
+  });
+</script>
+</body>
+</html>
