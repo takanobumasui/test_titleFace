@@ -17,7 +17,7 @@
   }
   .label {
     background: #0a0a0a;
-    border: 1px solid #444;
+    border: 1px solid #ffffff;
     padding: 18px 24px;
     max-width: 320px;
     width: 90vw;
@@ -27,13 +27,13 @@
     content: '';
     position: absolute;
     inset: 3px;
-    border: 0.5px solid #333;
+    border: 0.5px solid #ffffff;
     pointer-events: none;
   }
   .title-text {
     font-family: 'IM Fell English', serif;
     font-size: clamp(18px, 5vw, 26px);
-    color: #f0ece4;
+    color: #ffffff;
     line-height: 1.4;
     letter-spacing: 0.01em;
     min-height: 1.4em;
@@ -45,32 +45,19 @@
     font-size: clamp(16px, 4.5vw, 22px);
     font-weight: 400;
   }
-  .meta {
-    margin-top: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
   .year {
+    margin-top: 10px;
     font-size: 10px;
-    color: #666;
+    color: #ffffff;
     letter-spacing: 0.15em;
     font-family: 'IM Fell English', serif;
-  }
-  .updated {
-    font-size: 9px;
-    color: #555;
-    letter-spacing: 0.05em;
   }
 </style>
 </head>
 <body>
 <div class="label">
   <div class="title-text jp" id="titleDisplay">無題</div>
-  <div class="meta">
-    <span class="year">2025</span>
-    <span class="updated" id="updatedTime"></span>
-  </div>
+  <div class="year">2025</div>
 </div>
 
 <script type="module">
@@ -91,7 +78,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const titleEl = document.getElementById('titleDisplay');
-  const updatedEl = document.getElementById('updatedTime');
   let isFirst = true;
 
   function detectJP(text) {
@@ -115,7 +101,7 @@
     } catch(e) {}
   }
 
-  function updateDisplay(text, time) {
+  function updateDisplay(text) {
     titleEl.classList.add('fade');
     setTimeout(() => {
       titleEl.textContent = text || '無題';
@@ -124,7 +110,6 @@
       requestAnimationFrame(() => {
         requestAnimationFrame(() => titleEl.classList.remove('fade'));
       });
-      if (time) updatedEl.textContent = time;
     }, 600);
   }
 
@@ -133,7 +118,7 @@
     const data = snapshot.val();
     if (data) {
       if (!isFirst) playPon();
-      updateDisplay(data.text, data.time);
+      updateDisplay(data.text);
     }
     isFirst = false;
   });
