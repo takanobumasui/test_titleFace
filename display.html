@@ -95,17 +95,14 @@
   const db = getDatabase(app);
   const titleEl = document.getElementById('titleDisplay');
   let isFirst = true;
-  let audioCtx = null;
 
-  // タップでAudioContextを初期化・再開
+  const audio = new Audio('決定ボタンを押す53.mp3');
+  audio.playbackRate = 0.7;
+
+  // タップで音声を事前ロード
   document.addEventListener('touchstart', () => {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-  }, { once: false });
+    audio.load();
+  }, { once: true });
 
   function detectJP(text) {
     return /[\u3040-\u30FF\u4E00-\u9FFF]/.test(text);
@@ -113,23 +110,9 @@
 
   function playPon() {
     try {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(660, audioCtx.currentTime + 0.15);
-      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
-      osc.start(audioCtx.currentTime);
-      osc.stop(audioCtx.currentTime + 0.5);
+      audio.currentTime = 0;
+      audio.playbackRate = 0.7;
+      audio.play().catch(e => console.log(e));
     } catch(e) { console.log(e); }
   }
 
