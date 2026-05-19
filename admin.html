@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>履歴</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Noto+Serif+JP:wght@300;400&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f0e0c;
+    min-height: 100vh;
+    padding: 48px 24px;
+    font-family: 'Noto Serif JP', serif;
+    color: #c8b898;
+  }
+  .container { max-width: 600px; margin: 0 auto; }
+  h1 {
+    font-family: 'IM Fell English', serif;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    color: #4a4030;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+  .count {
+    font-size: 11px;
+    color: #4a4030;
+    letter-spacing: 0.1em;
+    margin-bottom: 24px;
+  }
+  .item {
+    border-bottom: 1px solid #1e1c18;
+    padding: 16px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: fadeIn 0.4s forwards;
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .item-text {
+    font-size: 17px;
+    color: #e8e0d0;
+    line-height: 1.5;
+    flex: 1;
+  }
+  .item-text.jp {
+    font-weight: 400;
+  }
+  .item-text:not(.jp) {
+    font-family: 'IM Fell English', serif;
+  }
+  .item-meta {
+    font-size: 10px;
+    color: #3a3428;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    text-align: right;
+  }
+  .empty {
+    font-size: 13px;
+    color: #3a3428;
+    font-style: italic;
+    font-family: 'IM Fell English', serif;
+  }
+  .number {
+    font-size: 10px;
+    color: #3a3428;
+    font-family: 'IM Fell English', serif;
+    min-width: 24px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Title History</h1>
+  <div class="count" id="count"></div>
+  <div id="list"><p class="empty">読み込み中…</p></div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCGC00UAHfbRlg-3jGO5OKYpH8y3dwG1Nc",
+    authDomain: "test-titleface.firebaseapp.com",
+    databaseURL: "https://test-titleface-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "test-titleface",
+    storageBucket: "test-titleface.firebasestorage.app",
+    messagingSenderId: "1052909282265",
+    appId: "1:1052909282265:web:aae76ccfb69451172b2fc8",
+    measurementId: "G-69BW0SZZ15"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const historyRef = ref(db, 'history');
+
+  function detectJP(text) {
+    return /[\u3040-\u30FF\u4E00-\u9FFF]/.test(text);
+  }
+
+  onValue(historyRef, (snapshot) => {
+    const listEl = document.getElementById('list');
+    const countEl = document.getElementById('count');
+    const data = snapshot.val();
+
+    if (!data) {
+      listEl.innerHTML = '<p class="empty">まだ投稿がありません。</p>';
+      countEl.textContent = '';
+      return;
+    }
+
+    const items = Object.values(data).sort((a, b) => b.timestamp - a.timestamp);
+    countEl.textContent = items.length + ' 件';
+
+    listEl.innerHTML = items.map((item, i) => `
+      <div class="item" style="animation-delay:${i * 0.04}s">
+        <span class="number">${items.length - i}</span>
+        <span class="item-text ${detectJP(item.text) ? 'jp' : ''}">${item.text}</span>
+        <span class="item-meta">${item.date}<br>${item.time}</span>
+      </div>
+    `).join('');
+  });
+</script>
+</body>
+</html>

@@ -124,7 +124,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCGC00UAHfbRlg-3jGO5OKYpH8y3dwG1Nc",
@@ -140,6 +140,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const titleRef = ref(db, 'title');
+  const historyRef = ref(db, 'history');
 
   const input = document.getElementById('titleInput');
   const counter = document.getElementById('counter');
@@ -172,7 +173,14 @@
     if (!text) return;
     const now = new Date();
     const time = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+    const dateStr = now.getFullYear() + '/' + (now.getMonth()+1) + '/' + now.getDate();
+    const timestamp = now.getTime();
+
+    // 現在のタイトルを更新
     await set(titleRef, { text, time });
+    // 履歴に追記
+    await push(historyRef, { text, time, date: dateStr, timestamp });
+
     input.value = '';
     counter.textContent = '0 / ' + MAX;
     btn.disabled = true;
