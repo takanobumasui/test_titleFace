@@ -6,9 +6,7 @@
 <title>タイトルを付ける</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Noto+Serif+JP:wght@300;400&display=swap');
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   body {
     background: #1a1814;
     min-height: 100vh;
@@ -19,12 +17,7 @@
     padding: 24px;
     font-family: 'Noto Serif JP', serif;
   }
-
-  .container {
-    width: 100%;
-    max-width: 400px;
-  }
-
+  .container { width: 100%; max-width: 400px; }
   .instruction {
     font-family: 'IM Fell English', serif;
     font-style: italic;
@@ -34,7 +27,6 @@
     text-align: center;
     margin-bottom: 32px;
   }
-
   .current-label {
     font-size: 10px;
     color: #4a4438;
@@ -42,7 +34,6 @@
     margin-bottom: 8px;
     text-transform: uppercase;
   }
-
   .current-title {
     font-family: 'IM Fell English', serif;
     font-size: 18px;
@@ -51,18 +42,11 @@
     min-height: 1.4em;
     font-style: italic;
   }
-
   .current-title.jp {
     font-family: 'Noto Serif JP', serif;
     font-style: normal;
     font-weight: 300;
   }
-
-  .input-wrap {
-    position: relative;
-    margin-bottom: 8px;
-  }
-
   textarea {
     width: 100%;
     background: transparent;
@@ -79,15 +63,8 @@
     caret-color: #c8a96e;
     transition: border-color 0.3s;
   }
-
-  textarea:focus {
-    border-bottom-color: #c8a96e;
-  }
-
-  textarea::placeholder {
-    color: #3a342a;
-  }
-
+  textarea:focus { border-bottom-color: #c8a96e; }
+  textarea::placeholder { color: #3a342a; }
   .counter {
     text-align: right;
     font-size: 11px;
@@ -96,10 +73,8 @@
     margin-bottom: 28px;
     transition: color 0.3s;
   }
-
   .counter.warn { color: #a06030; }
-  .counter.over  { color: #c04020; }
-
+  .counter.over { color: #c04020; }
   button {
     width: 100%;
     background: transparent;
@@ -112,18 +87,12 @@
     cursor: pointer;
     transition: all 0.3s;
   }
-
   button:hover:not(:disabled) {
     border-color: #c8a96e;
     color: #e8d8b0;
     background: rgba(200,169,110,0.05);
   }
-
-  button:disabled {
-    opacity: 0.3;
-    cursor: default;
-  }
-
+  button:disabled { opacity: 0.3; cursor: default; }
   .toast {
     position: fixed;
     bottom: 32px;
@@ -139,31 +108,39 @@
     pointer-events: none;
     font-family: 'IM Fell English', serif;
   }
-
-  .toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 <div class="container">
   <p class="instruction">この絵に、タイトルを付けてください。</p>
-
   <div class="current-label">現在のタイトル</div>
   <div class="current-title" id="currentTitle">無題</div>
-
-  <div class="input-wrap">
-    <textarea id="titleInput" rows="2" maxlength="40" placeholder="タイトルを入力…"></textarea>
-  </div>
+  <textarea id="titleInput" rows="2" maxlength="40" placeholder="タイトルを入力…"></textarea>
   <div class="counter" id="counter">0 / 40</div>
-
   <button id="submitBtn" disabled>決定する</button>
 </div>
-
 <div class="toast" id="toast">投稿しました</div>
 
-<script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCGC00UAHfbRlg-3jGO5OKYpH8y3dwG1Nc",
+    authDomain: "test-titleface.firebaseapp.com",
+    databaseURL: "https://test-titleface-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "test-titleface",
+    storageBucket: "test-titleface.firebasestorage.app",
+    messagingSenderId: "1052909282265",
+    appId: "1:1052909282265:web:aae76ccfb69451172b2fc8",
+    measurementId: "G-69BW0SZZ15"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const titleRef = ref(db, 'title');
+
   const input = document.getElementById('titleInput');
   const counter = document.getElementById('counter');
   const btn = document.getElementById('submitBtn');
@@ -175,17 +152,13 @@
     return /[\u3040-\u30FF\u4E00-\u9FFF]/.test(text);
   }
 
-  function loadCurrent() {
-    const saved = localStorage.getItem('painting_title');
-    if (saved) {
-      const data = JSON.parse(saved);
-      currentTitle.textContent = data.title || '無題';
-      currentTitle.className = 'current-title' + (detectJP(data.title) ? ' jp' : '');
+  onValue(titleRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      currentTitle.textContent = data.text || '無題';
+      currentTitle.className = 'current-title' + (detectJP(data.text) ? ' jp' : '');
     }
-  }
-
-  loadCurrent();
-  setInterval(loadCurrent, 1500);
+  });
 
   input.addEventListener('input', () => {
     const len = input.value.length;
@@ -194,23 +167,17 @@
     btn.disabled = len === 0;
   });
 
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', async () => {
     const text = input.value.trim();
     if (!text) return;
-
     const now = new Date();
-    const time = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
-
-    localStorage.setItem('painting_title', JSON.stringify({ title: text, time }));
-
+    const time = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+    await set(titleRef, { text, time });
     input.value = '';
     counter.textContent = '0 / ' + MAX;
     btn.disabled = true;
-
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 2000);
-
-    loadCurrent();
   });
 </script>
 </body>
