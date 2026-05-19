@@ -95,6 +95,17 @@
   const db = getDatabase(app);
   const titleEl = document.getElementById('titleDisplay');
   let isFirst = true;
+  let audioCtx = null;
+
+  // タップでAudioContextを初期化・再開
+  document.addEventListener('touchstart', () => {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }, { once: false });
 
   function detectJP(text) {
     return /[\u3040-\u30FF\u4E00-\u9FFF]/.test(text);
@@ -102,19 +113,24 @@
 
   function playPon() {
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(audioCtx.destination);
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.15);
-      gain.gain.setValueAtTime(0.4, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.4);
-    } catch(e) {}
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(660, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.5);
+    } catch(e) { console.log(e); }
   }
 
   function updateDisplay(text) {
