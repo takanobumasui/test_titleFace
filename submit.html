@@ -21,7 +21,7 @@
   .instruction {
     font-family: 'IM Fell English', serif;
     font-style: italic;
-    color: #7a6e5a;
+    color: #c8b896;
     font-size: 13px;
     letter-spacing: 0.08em;
     text-align: center;
@@ -29,7 +29,7 @@
   }
   .current-label {
     font-size: 10px;
-    color: #4a4438;
+    color: #a09070;
     letter-spacing: 0.15em;
     margin-bottom: 8px;
     text-transform: uppercase;
@@ -37,7 +37,7 @@
   .current-title {
     font-family: 'IM Fell English', serif;
     font-size: 18px;
-    color: #8a7a62;
+    color: #d4b880;
     margin-bottom: 32px;
     min-height: 1.4em;
     font-style: italic;
@@ -64,11 +64,11 @@
     transition: border-color 0.3s;
   }
   textarea:focus { border-bottom-color: #c8a96e; }
-  textarea::placeholder { color: #3a342a; }
+  textarea::placeholder { color: #706050; }
   .counter {
     text-align: right;
     font-size: 11px;
-    color: #4a4030;
+    color: #a09070;
     letter-spacing: 0.05em;
     margin-bottom: 28px;
     transition: color 0.3s;
@@ -79,7 +79,7 @@
     width: 100%;
     background: transparent;
     border: 1px solid #4a4030;
-    color: #c8b898;
+    color: #f0e0c0;
     font-family: 'IM Fell English', serif;
     font-size: 14px;
     letter-spacing: 0.2em;
@@ -116,8 +116,8 @@
   <p class="instruction">この絵に、タイトルを付けてください。</p>
   <div class="current-label">現在のタイトル</div>
   <div class="current-title" id="currentTitle">無題</div>
-  <textarea id="titleInput" rows="2" maxlength="40" placeholder="タイトルを入力…"></textarea>
-  <div class="counter" id="counter">0 / 40</div>
+  <textarea id="titleInput" rows="2" maxlength="30" placeholder="タイトルを入力…"></textarea>
+  <div class="counter" id="counter">0 / 30</div>
   <button id="submitBtn" disabled>決定する</button>
 </div>
 <div class="toast" id="toast">投稿しました</div>
@@ -147,7 +147,7 @@
   const btn = document.getElementById('submitBtn');
   const toast = document.getElementById('toast');
   const currentTitle = document.getElementById('currentTitle');
-  const MAX = 40;
+  const MAX = 30;
 
   function detectJP(text) {
     return /[\u3040-\u30FF\u4E00-\u9FFF]/.test(text);
@@ -164,7 +164,7 @@
   input.addEventListener('input', () => {
     const len = input.value.length;
     counter.textContent = len + ' / ' + MAX;
-    counter.className = 'counter' + (len > 35 ? ' warn' : '') + (len >= MAX ? ' over' : '');
+    counter.className = 'counter' + (len > 25 ? ' warn' : '') + (len >= MAX ? ' over' : '');
     btn.disabled = len === 0;
   });
 
