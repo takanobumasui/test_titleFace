@@ -72,6 +72,7 @@
     <span class="updated" id="updatedTime"></span>
   </div>
 </div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -91,9 +92,27 @@
   const db = getDatabase(app);
   const titleEl = document.getElementById('titleDisplay');
   const updatedEl = document.getElementById('updatedTime');
+  let isFirst = true;
 
   function detectJP(text) {
     return /[\u3040-\u30FF\u4E00-\u9FFF]/.test(text);
+  }
+
+  function playPon() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.4);
+    } catch(e) {}
   }
 
   function updateDisplay(text, time) {
@@ -112,7 +131,11 @@
   const titleRef = ref(db, 'title');
   onValue(titleRef, (snapshot) => {
     const data = snapshot.val();
-    if (data) updateDisplay(data.text, data.time);
+    if (data) {
+      if (!isFirst) playPon();
+      updateDisplay(data.text, data.time);
+    }
+    isFirst = false;
   });
 </script>
 </body>
